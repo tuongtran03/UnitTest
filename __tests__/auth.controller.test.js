@@ -1,9 +1,7 @@
 import { jest } from "@jest/globals";
 
-// Thiết lập môi trường
 process.env.JWT_SECRET_KEY = "test_secret_key";
 
-// Tạo mock objects thay vì chỉ mock functions
 const User = {
   find: jest.fn(),
 };
@@ -16,10 +14,8 @@ const jwt = {
   sign: jest.fn(),
 };
 
-// Mock userSockets
 const userSockets = {};
 
-// Định nghĩa hàm login để test
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -57,7 +53,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
   let res;
 
   beforeEach(() => {
-    // Khởi tạo lại mock trước mỗi test
     jest.clearAllMocks();
 
     // Mock request và response
@@ -71,7 +66,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     };
   });
 
-  // Phân vùng tương đương
   test("TC1: Đăng nhập với email hợp lệ và mật khẩu đúng", async () => {
     // Arrange
     const mockUser = {
@@ -90,10 +84,9 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     bcrypt.compare.mockResolvedValue(true);
     jwt.sign.mockReturnValue("validToken");
 
-    // Act
     await login(req, res);
 
-    // Assert
+    
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(bcrypt.compare).toHaveBeenCalledWith(
       req.body.password,
@@ -112,7 +105,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
   });
 
   test("TC2: Đăng nhập với email không hợp lệ", async () => {
-    // Arrange
     req.body = {
       email: "nonexistent@example.com",
       password: "password123",
@@ -120,10 +112,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
 
     User.find.mockResolvedValue([]);
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
@@ -147,10 +137,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     User.find.mockResolvedValue([mockUser]);
     bcrypt.compare.mockResolvedValue(false);
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(bcrypt.compare).toHaveBeenCalledWith(
       req.body.password,
@@ -162,7 +150,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     });
   });
 
-  // Phân tích giá trị biên
   test("TC4: Đăng nhập với email rỗng", async () => {
     // Arrange
     req.body = {
@@ -172,10 +159,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
 
     User.find.mockResolvedValue([]);
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: "" });
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
@@ -199,10 +184,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     User.find.mockResolvedValue([mockUser]);
     bcrypt.compare.mockResolvedValue(false);
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(bcrypt.compare).toHaveBeenCalledWith("", mockUser.password);
     expect(res.status).toHaveBeenCalledWith(400);
@@ -211,7 +194,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     });
   });
 
-  // Bảng quyết định
   test("TC6: Đăng nhập với tài khoản bị khóa", async () => {
     // Arrange
     const mockUser = {
@@ -228,10 +210,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     User.find.mockResolvedValue([mockUser]);
     userSockets[mockUser._id] = "someSocketId"; // Đã đăng nhập ở thiết bị khác
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
@@ -241,7 +221,6 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
   });
 
   test("TC7: Đăng nhập khi server không phản hồi", async () => {
-    // Arrange
     req.body = {
       email: "test@example.com",
       password: "password123",
@@ -250,10 +229,8 @@ describe("Kiểm thử chức năng Đăng nhập (Black Box)", () => {
     const errorMessage = "Lỗi kết nối đến server";
     User.find.mockRejectedValue(new Error(errorMessage));
 
-    // Act
     await login(req, res);
 
-    // Assert
     expect(User.find).toHaveBeenCalledWith({ email: req.body.email });
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
