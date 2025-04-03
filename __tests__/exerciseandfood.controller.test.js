@@ -1,6 +1,5 @@
 import { jest } from "@jest/globals";
 
-// Tạo mock objects cho các thành phần phụ thuộc
 const Exercise = {
   find: jest.fn(),
   aggregate: jest.fn(),
@@ -10,7 +9,6 @@ const Food = {
   find: jest.fn(),
 };
 
-// Định nghĩa các hàm tìm kiếm để test
 const getAllExercisesBySearchQueryName = async (req, res) => {
   try {
     const searchQueryName = req.params.searchQueryName || "";
@@ -112,10 +110,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
   let res;
 
   beforeEach(() => {
-    // Khởi tạo lại mock trước mỗi test
     jest.clearAllMocks();
 
-    // Mock request và response
     req = {
       params: {},
       query: {},
@@ -127,9 +123,7 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
     };
   });
 
-  // Phân vùng tương đương
   test("TC1: Tìm kiếm bài tập theo tên", async () => {
-    // Arrange
     const mockExercises = [
       {
         _id: "exercise1",
@@ -152,10 +146,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllExercisesBySearchQueryName(req, res);
 
-    // Assert
     expect(Exercise.find).toHaveBeenCalledWith({
       name: { $regex: "Bench", $options: "i" },
     });
@@ -167,7 +159,6 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
   });
 
   test("TC2: Tìm kiếm thực phẩm theo tên", async () => {
-    // Arrange
     const mockFoods = [
       {
         _id: "food1",
@@ -194,10 +185,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllFoods(req, res);
 
-    // Assert
     expect(Food.find).toHaveBeenCalledWith({
       name: { $regex: "Chuối", $options: "i" },
     });
@@ -210,7 +199,6 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
   });
 
   test("TC3: Lọc bài tập theo vùng cơ thể", async () => {
-    // Arrange
     const mockExercises = [
       {
         _id: "exercise1",
@@ -233,10 +221,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllExercisesByBodyPart(req, res);
 
-    // Assert
     expect(Exercise.find).toHaveBeenCalledWith({ bodyPart: "Ngực" });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
@@ -245,9 +231,7 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
     });
   });
 
-  // Phân tích giá trị biên
   test("TC4: Tìm kiếm với từ khóa rỗng", async () => {
-    // Arrange
     const mockExercises = [
       {
         _id: "exercise1",
@@ -270,10 +254,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllExercisesBySearchQueryName(req, res);
 
-    // Assert
     expect(Exercise.find).toHaveBeenCalledWith({});
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
@@ -283,7 +265,6 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
   });
 
   test("TC5: Tìm kiếm với từ khóa quá dài", async () => {
-    // Arrange
     const longSearchQuery = "a".repeat(100); // Tạo chuỗi dài 100 ký tự 'a'
 
     req.params.searchQueryName = longSearchQuery;
@@ -293,10 +274,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllExercisesBySearchQueryName(req, res);
 
-    // Assert
     expect(Exercise.find).toHaveBeenCalledWith({
       name: { $regex: longSearchQuery, $options: "i" },
     });
@@ -306,23 +285,18 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
     });
   });
 
-  // Bảng quyết định
   test("TC6: Tìm kiếm với ký tự đặc biệt", async () => {
-    // Arrange
     const specialCharacters = "$%^&*()";
 
     req.params.searchQueryName = specialCharacters;
 
-    // Giả lập lỗi khi tìm kiếm với ký tự đặc biệt
     const error = new Error("Lỗi cú pháp regex");
     Exercise.find.mockImplementation(() => {
       throw error;
     });
 
-    // Act
     await getAllExercisesBySearchQueryName(req, res);
 
-    // Assert
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
       message: error.message,
@@ -330,7 +304,6 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
   });
 
   test("TC7: Tìm kiếm khi không có kết quả", async () => {
-    // Arrange
     req.params.searchQueryName = "NonExistentExercise";
     Exercise.find.mockImplementation(() => ({
       skip: jest.fn().mockImplementation(() => ({
@@ -338,10 +311,8 @@ describe("Kiểm thử chức năng Tìm kiếm (Black Box)", () => {
       })),
     }));
 
-    // Act
     await getAllExercisesBySearchQueryName(req, res);
 
-    // Assert
     expect(Exercise.find).toHaveBeenCalledWith({
       name: { $regex: "NonExistentExercise", $options: "i" },
     });
