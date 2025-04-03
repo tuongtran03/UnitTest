@@ -1,6 +1,5 @@
 import { jest } from "@jest/globals";
 
-// Tạo mock objects cho các thành phần phụ thuộc
 const Exercise = {
   create: jest.fn(),
   findByIdAndUpdate: jest.fn(),
@@ -10,12 +9,10 @@ const Exercise = {
   find: jest.fn(),
 };
 
-// Mock Training model để kiểm tra tác động khi xóa bài tập
 const Training = {
   updateMany: jest.fn(),
 };
 
-// Định nghĩa các hàm cần test
 const createNewExercise = async (req, res) => {
   try {
     const newExe = await Exercise.create(req.body);
@@ -52,10 +49,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
   let res;
 
   beforeEach(() => {
-    // Khởi tạo lại mock trước mỗi test
     jest.clearAllMocks();
 
-    // Mock request và response
     req = {
       body: {},
       params: {},
@@ -67,9 +62,7 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     };
   });
 
-  // Phân vùng tương đương
   test("TC1: Tạo bài tập mới với thông tin đầy đủ", async () => {
-    // Arrange
     const mockExercise = {
       bodyPart: "Ngực",
       equipment: "barbell",
@@ -85,10 +78,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     req.body = mockExercise;
     Exercise.create.mockResolvedValue(mockExercise);
 
-    // Act
     await createNewExercise(req, res);
 
-    // Assert
     expect(Exercise.create).toHaveBeenCalledWith(mockExercise);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
@@ -102,19 +93,15 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     const mockExercise = {
       bodyPart: "Ngực",
       equipment: "barbell",
-      // Thiếu gifUrl
       name: "Bench Press",
-      // Thiếu target
     };
 
     req.body = mockExercise;
     const error = new Error("Thiếu thông tin bắt buộc");
     Exercise.create.mockRejectedValue(error);
 
-    // Act
     await createNewExercise(req, res);
 
-    // Assert
     expect(Exercise.create).toHaveBeenCalledWith(mockExercise);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -123,7 +110,6 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
   });
 
   test("TC3: Chỉnh sửa bài tập hiện có", async () => {
-    // Arrange
     const mockExercise = {
       _id: "exercise123",
       bodyPart: "Ngực",
@@ -140,10 +126,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     req.body = mockExercise;
     Exercise.findByIdAndUpdate.mockResolvedValue(mockExercise);
 
-    // Act
     await updateExercise(req, res);
 
-    // Assert
     expect(Exercise.findByIdAndUpdate).toHaveBeenCalledWith(
       mockExercise._id,
       mockExercise
@@ -155,9 +139,7 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     });
   });
 
-  // Phân tích giá trị biên
   test("TC4: Tạo bài tập với tên rỗng", async () => {
-    // Arrange
     const mockExercise = {
       bodyPart: "Ngực",
       equipment: "barbell",
@@ -170,10 +152,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     const error = new Error("Tên bài tập không được để trống");
     Exercise.create.mockRejectedValue(error);
 
-    // Act
     await createNewExercise(req, res);
 
-    // Assert
     expect(Exercise.create).toHaveBeenCalledWith(mockExercise);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -182,7 +162,6 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
   });
 
   test("TC5: Tạo bài tập với số lần tập = 0", async () => {
-    // Arrange
     const mockExercise = {
       bodyPart: "Ngực",
       equipment: "barbell",
@@ -196,10 +175,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     const error = new Error("Số lần tập phải lớn hơn 0");
     Exercise.create.mockRejectedValue(error);
 
-    // Act
     await createNewExercise(req, res);
 
-    // Assert
     expect(Exercise.create).toHaveBeenCalledWith(mockExercise);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -207,9 +184,7 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     });
   });
 
-  // Bảng quyết định
   test("TC6: Xóa bài tập đang được sử dụng", async () => {
-    // Arrange
     const exerciseId = "exercise123";
     req.params.id = exerciseId;
 
@@ -217,10 +192,8 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
     const error = new Error("Bài tập đang được sử dụng trong các training");
     Exercise.findOneAndDelete.mockRejectedValue(error);
 
-    // Act
     await deleteExercisesById(req, res);
 
-    // Assert
     expect(Exercise.findOneAndDelete).toHaveBeenCalledWith({ _id: exerciseId });
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -229,7 +202,6 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
   });
 
   test("TC7: Cập nhật bài tập không tồn tại", async () => {
-    // Arrange
     const mockExercise = {
       _id: "nonexistentId",
       bodyPart: "Ngực",
@@ -239,13 +211,10 @@ describe("Kiểm thử chức năng Quản lý Bài tập (Black Box)", () => {
 
     req.body = mockExercise;
 
-    // Trả về null để mô phỏng bài tập không tồn tại
     Exercise.findByIdAndUpdate.mockResolvedValue(null);
 
-    // Act
     await updateExercise(req, res);
 
-    // Assert
     expect(Exercise.findByIdAndUpdate).toHaveBeenCalledWith(
       mockExercise._id,
       mockExercise
